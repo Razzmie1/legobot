@@ -15,7 +15,7 @@ This project’s trajectory:
 
 ## Tech stack (planned)
 
-- **Control & Comms**: Python, [`nxt-python`](https://ni.srht.site/nxt-python/latest/) and PyBluez for NXT 2.0 Bluetooth communication
+- **Control & Comms**: Python, [`NXT-Python`](https://ni.srht.site/nxt-python/latest/) and pySerial for NXT 2.0 Bluetooth communication
 - **Environment & Tooling**: [`uv`](https://docs.astral.sh/uv/) for virtualenv + dependency management
 - **Data & Logging**: Custom Python logging utilities for teleoperation trajectories and episode metadata
 - **Vision**: Front-mounted WLAN camera, streamed to the control PC
@@ -23,9 +23,16 @@ This project’s trajectory:
 - **Clean Code**: [`Ruff`](https://docs.astral.sh/ruff/) for linting and formatting code
 - **AI Coding**: [`Cursor`](https://cursor.com/) for experimenting with coding using an AI assistant
 
-## VLA roadmap (planned)
+## Teleoperation roadmap
 
-High-level steps:
+- Connect to the NXT-Brick via Bluetooth using a CSR Bluetooth Dongle
+- Use pySerial and Bluetooth ports instead of the deprecated PyBluez, so no need to install a C++ Compiler and a Windows 10 SDK
+- Send motor control signals using a python script for testing
+- Implement a command translator that maps keyboard input to motor control signals
+- Implement a service that listens on keyboard input
+- Add a controller as optional input device
+
+## VLA roadmap (planned)
 
 - Define a simple **action space** for the vehicle
 - Define a single **instruction** for simplicity at first
