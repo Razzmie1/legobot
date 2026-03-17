@@ -1,0 +1,19 @@
+[project]
+name = "legobot"
+version = "0.1.0"
+description = "A project to control a simple LEGO robot using teleoperation or a VLA model"
+authors = ["Rafael Diaz"]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "nxt-python>=3.5.1",
+    "pybluez",
+]
+
+[tool.uv.sources]
+pybluez = { git = "https://github.com/pybluez/pybluez.git" }
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.6",
+]

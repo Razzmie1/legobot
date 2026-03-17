@@ -15,7 +15,9 @@ This project’s trajectory:
 
 ## Tech stack (planned)
 
-- **Control & Comms**: Python, [`NXT-Python`](https://ni.srht.site/nxt-python/latest/) and pySerial for NXT 2.0 Bluetooth communication
+- **Programming Language**: Python 3.11
+- **Communication**: [`NXT-Python`](https://ni.srht.site/nxt-python/latest/) and [`PyBluez`](https://github.com/pybluez/pybluez) for Bluetooth connection to the NXT Brick
+- **Remote Control**: [`pynput`](https://github.com/moses-palmer/pynput) for keyboard input handling
 - **Environment & Tooling**: [`uv`](https://docs.astral.sh/uv/) for virtualenv + dependency management
 - **Data & Logging**: Custom Python logging utilities for teleoperation trajectories and episode metadata
 - **Vision**: Front-mounted WLAN camera, streamed to the control PC
@@ -25,8 +27,6 @@ This project’s trajectory:
 
 ## Teleoperation roadmap
 
-- Connect to the NXT-Brick via Bluetooth using a CSR Bluetooth Dongle
-- Use pySerial and Bluetooth ports instead of the deprecated PyBluez, so no need to install a C++ Compiler and a Windows 10 SDK
 - Send motor control signals using a python script for testing
 - Implement a command translator that maps keyboard input to motor control signals
 - Implement a service that listens on keyboard input
@@ -42,3 +42,24 @@ This project’s trajectory:
 - **Evaluate** with clear metrics (success rate, time, collisions, smoothness) and hard safety rules
 - **Enhance** the action space and tasks for the robot, for example by using a third motor as forklift
 - Train on more data for **several tasks** and evaluate generalization capabilities
+
+## Installation
+
+1. This project uses [`uv`](https://docs.astral.sh/uv/) which needs to be installed first
+   ```powershell
+   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+   ```
+
+2. Clone this repository
+   ```powershell
+   git clone https://github.com/Razzmie1/legobot.git your/folder/path
+   ```
+
+3. Switch to the repo folder and sync the dependencies of the [`uv.lock`](uv.lock)
+   ```powershell
+   uv sync
+   ```
+   This creates a virtual environment `.venv` with the required dependencies which can be activated by
+   ```powershell
+   .venv\Scripts\activate
+   ```
