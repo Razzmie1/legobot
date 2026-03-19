@@ -13,7 +13,7 @@ This project’s trajectory:
 - **Phase 3**: Train a VLA model to execute tasks from natural-language instructions
 - **Phase 4**: Run the trained policy on real hardware with safety constraints and evaluation
 
-## Tech stack (planned)
+## Tech Stack (planned)
 
 - **Programming Language**: Python 3.11
 - **Communication**: [`NXT-Python`](https://ni.srht.site/nxt-python/latest/) and [`PyBluez`](https://github.com/pybluez/pybluez) for Bluetooth connection to the NXT Brick
@@ -25,14 +25,14 @@ This project’s trajectory:
 - **Clean Code**: [`Ruff`](https://docs.astral.sh/ruff/) for linting and formatting code
 - **AI Coding**: [`Cursor`](https://cursor.com/) for experimenting with coding using an AI assistant
 
-## Teleoperation roadmap
+## Teleoperation Roadmap
 
 - Send motor control signals using a python script for testing
 - Implement a command translator that maps keyboard input to motor control signals
 - Implement a service that listens on keyboard input
 - Add a controller as optional input device
 
-## VLA roadmap (planned)
+## VLA Roadmap (planned)
 
 - Define a simple **action space** for the vehicle
 - Define a single **instruction** for simplicity at first
@@ -59,7 +59,42 @@ This project’s trajectory:
    ```powershell
    uv sync
    ```
-   This creates a virtual environment `.venv` with the required dependencies which can be activated by
+   This creates a virtual environment `.venv` with the required dependencies which should be activated by
    ```powershell
    .venv\Scripts\activate
    ```
+
+## NXT Setup and Bluetooth Tests
+
+### Setup the config file
+
+`nxt-python` can read a configuration file named `.nxt-python.conf`
+
+```ini
+[DEFAULT]
+backends = bluetooth
+host = 00:16:53:0E:40:B1
+name = NXT
+```
+
+Adjust `host` and `name`, where `host` is the NXT Bluetooth address. The address can be found in the "Settings" menu, under "NXT Version" it is the last line labeled "ID". Add `:` between each pair of digits as shown above.
+
+### Test Bluetooth connection
+
+Run the following script, where a tone from the NXT Brick confirms the Bluetooth connection
+
+```powershell
+python test_bluetooth.py
+```
+
+Then, run the following script, which sends drive commands to motor ports `A` and `C` (tank steering): drive forward/backward, turn left/right
+
+```powershell
+python test_motors.py
+```
+
+**Caution:** Make sure the NXT vehicle drives in a safe environment (;
+
+### Troubleshooting
+
+- **NXT Brick not connected properly:** Make sure that you added the NXT Brick as new Bluetooth device and check the Bluetooth settings. In the advanced Bluetooth settings under `COM Ports` there must be an outgoing port for this device. Otherwise there might be an issue with the integrated Bluetooth adapter and its driver, because the NXT Brick is quite old and uses SPP. In my case, buying a cheap Bluetooth Dongle with SPP support solved this issue.
