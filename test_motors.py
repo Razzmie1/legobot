@@ -12,7 +12,10 @@ import time
 import nxt.locator
 from nxt.motor import Motor, Port
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(filename)s: %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 POWER = 100
 DURATION = 1.0
@@ -37,25 +40,25 @@ def drive(
 
 def main() -> None:
     with nxt.locator.find() as brick:
-        print("Found brick:", brick.get_device_info()[0])
+        logger.info(f"Found brick: {brick.get_device_info()[0]}")
 
         left_motor = brick.get_motor(Port.C)
         right_motor = brick.get_motor(Port.A)
 
-        print("Driving forward")
+        logger.info("Driving forward")
         drive(left_motor, right_motor, POWER, POWER, DURATION)
 
-        print("Driving backward")
+        logger.info("Driving backward")
         drive(left_motor, right_motor, -POWER, -POWER, DURATION)
 
-        print("Turning left")
+        logger.info("Turning left")
         drive(left_motor, right_motor, -POWER, POWER, DURATION)
 
-        print("Turning right")
+        logger.info("Turning right")
         drive(left_motor, right_motor, POWER, -POWER, DURATION)
 
-        print("Testing completed")
-        brick.play_tone(440, 250)
+        logger.info("Testing completed")
+        brick.play_tone(440, 500)
 
 
 if __name__ == "__main__":
