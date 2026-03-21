@@ -1,4 +1,4 @@
-## Legobot
+# Legobot
 
 **Control a LEGO Mindstorms NXT 2.0 robot from a Windows PC or let the AI control it to perform a given task!**
 
@@ -27,9 +27,7 @@ This project’s trajectory:
 
 ## Teleoperation Roadmap
 
-- Send motor control signals using a python script for testing
-- Implement a command translator that maps keyboard input to motor control signals
-- Implement a service that listens on keyboard input
+- Add tests for keyboard input interpretation and execution order
 - Add a controller as optional input device
 
 ## VLA Roadmap (planned)
@@ -97,4 +95,29 @@ python test_motors.py
 
 ### Troubleshooting
 
-- **NXT Brick not connected properly:** Make sure that you added the NXT Brick as new Bluetooth device and check the Bluetooth settings. In the advanced Bluetooth settings under `COM Ports` there must be an outgoing port for this device. Otherwise there might be an issue with the integrated Bluetooth adapter and its driver, because the NXT Brick is quite old and uses SPP. In my case, buying a cheap Bluetooth Dongle with SPP support solved this issue.
+- **NXT Brick not connected properly:** Make sure that you added the NXT Brick as new Bluetooth device and check the Bluetooth settings. In the advanced Bluetooth settings under `COM Ports` there must be an `outgoing port` for this device. Otherwise there might be an issue with the integrated Bluetooth adapter and its driver, because the NXT Brick is quite old and uses SPP. In my case, buying a cheap Bluetooth Dongle with SPP support solved this issue.
+
+## Teleoperation
+
+After setting up the NXT Brick and testing the connection as described above, you can teleoperate the vehicle using the keyboard.
+
+Run the teleoperation script
+
+```powershell
+python teleoperate.py
+```
+
+Use the following controls to drive the vehicle:
+
+| Key       | Action       |
+|-----------|--------------|
+| `W` / `Up`    | Drive forward|
+| `S` / `Down`  | Drive backward|
+| `A` / `Left`  | Turn left    |
+| `D` / `Right` | Turn right   |
+| `Space`     | Play tone    |
+| `Esc`       | Quit         |
+
+**Caution:** The keyboard **listener stays active** even if you switch to another program or window. So it is recommended to stay on the command window until you quit the listener with `Esc`
+
+**Caution:** Again make sure the NXT vehicle drives in a safe environment
