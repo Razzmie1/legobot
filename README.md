@@ -6,13 +6,6 @@ Right now the robot is actually a differential-drive vehicle with left and right
 
 This project is intended to get some initial hands on experience in the field of robotic control and vision-language-action (VLA) models and see which difficulties may arise, so everything is kept simple. Furthermore, some parts of the code will be written using Cursor for experimentation and checking to what extent an AI is a useful assistant.
 
-This project’s trajectory:
-
-- **Phase 1 (now)**: Reliably connect to an NXT brick, send motor commands
-- **Phase 2**: Teleoperate the vehicle (keyboard/controller) while recording synchronized observations + actions
-- **Phase 3**: Train a VLA model to execute tasks from natural-language instructions
-- **Phase 4**: Run the trained policy on real hardware with safety constraints and evaluation
-
 ## Tech Stack (planned)
 
 - **Programming Language**: Python 3.11
@@ -25,12 +18,21 @@ This project’s trajectory:
 - **Clean Code**: [`Ruff`](https://docs.astral.sh/ruff/) for linting and formatting code
 - **AI Coding**: [`Cursor`](https://cursor.com/) for experimenting with coding using an AI assistant
 
-## Teleoperation Roadmap
+## Roadmap
+
+### Teleoperation
 
 - Add tests for keyboard input interpretation and execution order
 - Add a controller as optional input device
 
-## VLA Roadmap (planned)
+### VLM (planned)
+
+- Define **action methods** with docstrings for the vehicle
+- Attach a **camera** on vehicle that captures images
+- Use **tool calling VLM** that maps `(instruction, image) -> action`, for example an Ollama cloud model, so no GPU needed
+- **Experiment** with different prompts and also dynamic prompts that e.g. include the action history
+
+### VLA (planned)
 
 - Define a simple **action space** for the vehicle
 - Define a single **instruction** for simplicity at first
@@ -62,7 +64,7 @@ This project’s trajectory:
    .venv\Scripts\activate
    ```
 
-## NXT Setup and Bluetooth Tests
+## NXT Setup and Bluetooth Checks
 
 ### Setup the config file
 
@@ -77,18 +79,18 @@ name = NXT
 
 Adjust `host` and `name`, where `host` is the NXT Bluetooth address. The address can be found in the "Settings" menu, under "NXT Version" it is the last line labeled "ID". Add `:` between each pair of digits as shown above.
 
-### Test Bluetooth connection
+### Check Bluetooth connection
 
 Run the following script, where a tone from the NXT Brick confirms the Bluetooth connection
 
 ```powershell
-python test_bluetooth.py
+python scripts\check_bluetooth.py
 ```
 
 Then, run the following script, which sends drive commands to motor ports `A` and `C` (tank steering): drive forward/backward, turn left/right
 
 ```powershell
-python test_motors.py
+python scripts\check_motors.py
 ```
 
 **Caution:** Make sure the NXT vehicle drives in a safe environment (;
@@ -99,12 +101,12 @@ python test_motors.py
 
 ## Teleoperation
 
-After setting up the NXT Brick and testing the connection as described above, you can teleoperate the vehicle using the keyboard.
+After setting up the NXT Brick and checking the connection as described above, you can teleoperate the vehicle using the keyboard.
 
 Run the teleoperation script
 
 ```powershell
-python teleoperate.py
+python scripts\teleoperate.py
 ```
 
 Use the following controls to drive the vehicle:

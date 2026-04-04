@@ -38,7 +38,7 @@ def drive(
     left_motor.brake()
 
 
-def main() -> None:
+def main():
     with nxt.locator.find() as brick:
         logger.info(f"Found brick: {brick.get_device_info()[0]}")
 

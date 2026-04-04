@@ -2,7 +2,9 @@
 name = "legobot"
 version = "0.1.0"
 description = "A project to control a simple LEGO robot using teleoperation or a VLA model"
-authors = ["Rafael Diaz"]
+authors = [
+    { name = "Rafael Diaz" }
+]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -10,6 +12,9 @@ dependencies = [
     "pybluez",
     "pynput>=1.8.1",
 ]
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.uv.sources]
 pybluez = { git = "https://github.com/pybluez/pybluez.git" }

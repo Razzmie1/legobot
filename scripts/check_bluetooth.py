@@ -13,6 +13,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-with nxt.locator.find() as b:
-    logger.info(f"Found brick: {b.get_device_info()[0]}")
-    b.play_tone(440, 250)
+
+def main():
+    with nxt.locator.find() as b:
+        logger.info(f"Found brick: {b.get_device_info()[0]}")
+        b.play_tone(440, 250)
+
+
+if __name__ == "__main__":
+    main()
