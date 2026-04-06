@@ -1,48 +1,90 @@
-from nxt.brick import Brick
-from nxt.motor import Motor, Port
-from typing import Optional
 import logging
+from enum import Enum
+
+from nxt.brick import Brick
+from nxt.motor import Port
 
 logger = logging.getLogger(__name__)
 
 
-class Vehicle:
-    def __init__(self, brick: Brick) -> None:
-        self.brick: Brick = brick
-        self.left_motor: Motor = brick.get_motor(Port.C)
-        self.right_motor: Motor = brick.get_motor(Port.A)
+class VehicleBase:
+    """
+    Base class for vehicles which defines the interface and can be used for testing.
+    """
+
+    class Action(Enum):
+        FORWARD = 1
+        BACKWARD = 2
+        LEFT = 3
+        RIGHT = 4
+        SPACE = 5
+        STOP = 6
+
+    def forward(self) -> Action:
+        logger.info(f"Executed Action: {VehicleBase.Action.FORWARD.name}")
+        return VehicleBase.Action.FORWARD
+
+    def backward(self) -> Action:
+        logger.info(f"Executed Action: {VehicleBase.Action.BACKWARD.name}")
+        return VehicleBase.Action.BACKWARD
+
+    def left(self) -> Action:
+        logger.info(f"Executed Action: {VehicleBase.Action.LEFT.name}")
+        return VehicleBase.Action.LEFT
+
+    def right(self) -> Action:
+        logger.info(f"Executed Action: {VehicleBase.Action.RIGHT.name}")
+        return VehicleBase.Action.RIGHT
+
+    def space(self) -> Action:
+        logger.info(f"Executed Action: {VehicleBase.Action.SPACE.name}")
+        return VehicleBase.Action.SPACE
+
+    def stop(self) -> Action:
+        logger.info(f"Executed Action: {VehicleBase.Action.STOP.name}")
+        return VehicleBase.Action.STOP
+
+
+class NxtVehicle(VehicleBase):
+    """
+    A vehicle implementation that controls a physical NXT robot using the nxt-python library.
+    """
+
+    def __init__(self, brick: Brick):
+        self.brick = brick
+        self.left_motor = brick.get_motor(Port.C)
+        self.right_motor = brick.get_motor(Port.A)
+
         # Default power level for all movements, should be between 64 and 128
         self.power: int = 100
 
-    def execute_command(self, action: Optional[str]) -> None:
-        """Interprets the logical action and drives the motors."""
-        if action == "forward":
-            logger.info("--> Robot moving FORWARD")
-            self.left_motor.run(self.power)
-            self.right_motor.run(self.power)
+    def forward(self):
+        self.left_motor.run(self.power)
+        self.right_motor.run(self.power)
+        return super().forward()
 
-        elif action == "backward":
-            logger.info("--> Robot moving BACKWARD")
-            self.left_motor.run(-self.power)
-            self.right_motor.run(-self.power)
+    def backward(self):
+        self.left_motor.run(-self.power)
+        self.right_motor.run(-self.power)
+        return super().backward()
 
-        elif action == "left":
-            logger.info("--> Robot turning LEFT")
-            self.left_motor.run(-self.power)
-            self.right_motor.run(self.power)
+    def left(self):
+        self.left_motor.run(-self.power)
+        self.right_motor.run(self.power)
+        return super().left()
 
-        elif action == "right":
-            logger.info("--> Robot turning RIGHT")
-            self.left_motor.run(self.power)
-            self.right_motor.run(-self.power)
+    def right(self):
+        self.left_motor.run(self.power)
+        self.right_motor.run(-self.power)
+        return super().right()
 
-        elif action == "space_action":
-            logger.info("--> Robot playing TONE")
-            self.left_motor.brake()
-            self.right_motor.brake()
-            self.brick.play_tone(440, 500)
+    def space(self):
+        self.left_motor.brake()
+        self.right_motor.brake()
+        self.brick.play_tone(440, 500)
+        return super().space()
 
-        elif action is None:
-            logger.info("--> Robot STOPPED")
-            self.left_motor.brake()
-            self.right_motor.brake()
+    def stop(self):
+        self.left_motor.brake()
+        self.right_motor.brake()
+        return super().stop()

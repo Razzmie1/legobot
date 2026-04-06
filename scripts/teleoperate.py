@@ -11,37 +11,54 @@ Please configure the .nxt-python.conf first.
 """
 
 import logging
-from legobot.nxt_robots import Vehicle
-from legobot.controller import KeyboardController
-import nxt.locator
 
+import nxt.locator
 from pynput import keyboard
+
+from legobot.controller import KeyboardController
+from legobot.nxt_robots import NxtVehicle, VehicleBase
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(filename)s: %(message)s"
 )
 logger = logging.getLogger(__name__)
 
+SIMULATION_MODE = True
+
 
 def main():
-    logger.info("Attempting to connect to NXT brick via USB/Bluetooth...")
+    if SIMULATION_MODE:
+        logger.info("Running in simulation mode without a physical brick.")
 
-    try:
-        with nxt.locator.find() as brick:
-            logger.info("Successfully connected to NXT brick!")
+        robot = VehicleBase()
+        controller = KeyboardController(robot)
 
-            robot = Vehicle(brick)
-            controller = KeyboardController(robot)
+        with keyboard.Listener(
+            on_press=controller.on_press,  # type: ignore
+            on_release=controller.on_release,  # type: ignore
+        ) as listener:
+            listener.join()
 
-            with keyboard.Listener(
-                on_press=controller.on_press, on_release=controller.on_release
-            ) as listener:
-                listener.join()
+    else:
+        logger.info("Attempting to connect to NXT brick via USB/Bluetooth...")
 
-    except nxt.locator.BrickNotFoundError:
-        logger.error(
-            "ERROR: Could not find the NXT brick. Check your Bluetooth connection."
-        )
+        try:
+            with nxt.locator.find() as brick:
+                logger.info("Successfully connected to NXT brick!")
+
+                robot = NxtVehicle(brick)
+                controller = KeyboardController(robot)
+
+                with keyboard.Listener(
+                    on_press=controller.on_press,  # type: ignore
+                    on_release=controller.on_release,  # type: ignore
+                ) as listener:
+                    listener.join()
+
+        except nxt.locator.BrickNotFoundError:
+            logger.error(
+                "Could not find the NXT brick. Check your Bluetooth connection."
+            )
 
 
 if __name__ == "__main__":
