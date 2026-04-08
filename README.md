@@ -22,8 +22,7 @@ This project is intended to get some initial hands on experience in the field of
 
 ### Teleoperation
 
-- Add tests for keyboard input interpretation and execution order
-- Add a controller as optional input device
+- (Optional) Add a controller as input device
 
 ### VLM (planned)
 

@@ -7,42 +7,49 @@ from nxt.motor import Port
 logger = logging.getLogger(__name__)
 
 
+class VehicleAction(Enum):
+    FORWARD = 1
+    BACKWARD = 2
+    LEFT = 3
+    RIGHT = 4
+    SPACE = 5
+    STOP = 6
+
+
 class VehicleBase:
     """
     Base class for vehicles which defines the interface and can be used for testing.
     """
 
-    class Action(Enum):
-        FORWARD = 1
-        BACKWARD = 2
-        LEFT = 3
-        RIGHT = 4
-        SPACE = 5
-        STOP = 6
+    def __init__(self):
+        self.current_action: VehicleAction = VehicleAction.STOP
+        self.current_action_count = 0
 
-    def forward(self) -> Action:
-        logger.info(f"Executed Action: {VehicleBase.Action.FORWARD.name}")
-        return VehicleBase.Action.FORWARD
+    def _update_action(self, action: VehicleAction):
+        logger.info(f"Executing Action: {action.name}")
+        if self.current_action == action:
+            self.current_action_count += 1
+        else:
+            self.current_action = action
+            self.current_action_count = 1
 
-    def backward(self) -> Action:
-        logger.info(f"Executed Action: {VehicleBase.Action.BACKWARD.name}")
-        return VehicleBase.Action.BACKWARD
+    def forward(self):
+        self._update_action(VehicleAction.FORWARD)
 
-    def left(self) -> Action:
-        logger.info(f"Executed Action: {VehicleBase.Action.LEFT.name}")
-        return VehicleBase.Action.LEFT
+    def backward(self):
+        self._update_action(VehicleAction.BACKWARD)
 
-    def right(self) -> Action:
-        logger.info(f"Executed Action: {VehicleBase.Action.RIGHT.name}")
-        return VehicleBase.Action.RIGHT
+    def left(self):
+        self._update_action(VehicleAction.LEFT)
 
-    def space(self) -> Action:
-        logger.info(f"Executed Action: {VehicleBase.Action.SPACE.name}")
-        return VehicleBase.Action.SPACE
+    def right(self):
+        self._update_action(VehicleAction.RIGHT)
 
-    def stop(self) -> Action:
-        logger.info(f"Executed Action: {VehicleBase.Action.STOP.name}")
-        return VehicleBase.Action.STOP
+    def space(self):
+        self._update_action(VehicleAction.SPACE)
+
+    def stop(self):
+        self._update_action(VehicleAction.STOP)
 
 
 class NxtVehicle(VehicleBase):
@@ -51,6 +58,7 @@ class NxtVehicle(VehicleBase):
     """
 
     def __init__(self, brick: Brick):
+        super().__init__()
         self.brick = brick
         self.left_motor = brick.get_motor(Port.C)
         self.right_motor = brick.get_motor(Port.A)
@@ -61,30 +69,30 @@ class NxtVehicle(VehicleBase):
     def forward(self):
         self.left_motor.run(self.power)
         self.right_motor.run(self.power)
-        return super().forward()
+        super().forward()
 
     def backward(self):
         self.left_motor.run(-self.power)
         self.right_motor.run(-self.power)
-        return super().backward()
+        super().backward()
 
     def left(self):
         self.left_motor.run(-self.power)
         self.right_motor.run(self.power)
-        return super().left()
+        super().left()
 
     def right(self):
         self.left_motor.run(self.power)
         self.right_motor.run(-self.power)
-        return super().right()
+        super().right()
 
     def space(self):
         self.left_motor.brake()
         self.right_motor.brake()
         self.brick.play_tone(440, 500)
-        return super().space()
+        super().space()
 
     def stop(self):
         self.left_motor.brake()
         self.right_motor.brake()
-        return super().stop()
+        super().stop()

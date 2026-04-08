@@ -3,7 +3,7 @@ from typing import Callable, Dict, List, Optional, Union
 
 from pynput.keyboard import Key, KeyCode
 
-from legobot.nxt_robots import VehicleBase
+from legobot.robots import VehicleBase
 
 logger = logging.getLogger(__name__)
 

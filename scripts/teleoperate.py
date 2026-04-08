@@ -16,7 +16,7 @@ import nxt.locator
 from pynput import keyboard
 
 from legobot.controller import KeyboardController
-from legobot.nxt_robots import NxtVehicle, VehicleBase
+from legobot.robots import NxtVehicle, VehicleBase
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(filename)s: %(message)s"
