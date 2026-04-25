@@ -3,16 +3,20 @@ from typing import Callable, Dict, List, Optional, Union
 
 from pynput.keyboard import Key, KeyCode
 
+from legobot.cameras import CameraStream
 from legobot.robots import VehicleBase
 
 logger = logging.getLogger(__name__)
 
 
 class KeyboardController:
-    def __init__(self, vehicle: VehicleBase) -> None:
+    def __init__(
+        self, vehicle: VehicleBase, camera: Optional[CameraStream] = None
+    ) -> None:
         self.pressed_keys: List[Union[Key, KeyCode]] = []
         self.stop_action: Callable = vehicle.stop
         self.current_action: Callable = vehicle.stop
+        self.camera = camera
         self.key_to_action: Dict[Union[Key, KeyCode], Callable] = {
             KeyCode.from_char("w"): vehicle.forward,
             KeyCode.from_char("s"): vehicle.backward,
@@ -49,6 +53,8 @@ class KeyboardController:
 
     def on_release(self, key: Union[Key, KeyCode]) -> Optional[bool]:
         if key == Key.esc:
+            if self.camera:
+                self.camera.stop_event.set()
             self.stop_action()
             logger.info("Esc pressed. Exiting...")
             return False

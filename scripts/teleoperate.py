@@ -11,7 +11,6 @@ Please configure the .nxt-python.conf first.
 """
 
 import logging
-import time
 from contextlib import nullcontext
 from typing import Optional
 
@@ -41,17 +40,16 @@ def main():
         brick if brick else nullcontext(),
     ):
         robot = NxtVehicle(brick) if brick else VehicleBase()
-        controller = KeyboardController(robot)
+        controller = KeyboardController(robot, camera)
         listener = keyboard.Listener(
             on_press=controller.on_press,  # type: ignore
             on_release=controller.on_release,  # type: ignore
         )
         with listener:
-            while listener.is_alive():
-                if camera:
-                    camera.render()
-                else:
-                    time.sleep(0.05)
+            if camera:
+                camera.join()
+            else:
+                listener.join()
 
 
 def initialize_cam() -> Optional[CameraStream]:

@@ -23,13 +23,15 @@ class CameraStream:
         Args:
             camera_source: Local camera index. If None, it will try to read from the CAMERA_URL environment variable or default to 0.
         """
-        self.running = False
-        self.thread = threading.Thread(target=self._capture_loop, daemon=True)
         self.camera_source = camera_source or os.getenv("CAMERA_URL", 0)
         self.cap = self._open_capture(self.camera_source)
-        self.frame = None
-        self.frame_lock = threading.Lock()
         self.window_name = "Camera Stream"
+        self.frame = None
+
+        self.capture_thread = threading.Thread(target=self._capture_loop, daemon=True)
+        self.render_thread = threading.Thread(target=self._render_loop, daemon=True)
+        self.stop_event = threading.Event()
+        self.frame_lock = threading.Lock()
 
     def _open_capture(self, camera_source: Union[int, str]) -> cv2.VideoCapture:
         if isinstance(camera_source, int):
@@ -64,7 +66,7 @@ class CameraStream:
         """
         Capture frames in a background thread and keep the latest frame available.
         """
-        while self.running:
+        while not self.stop_event.is_set():
             ret, frame = self.cap.read()
             if not ret:
                 logger.error("Failed to read frame from camera.")
@@ -72,26 +74,31 @@ class CameraStream:
             with self.frame_lock:
                 self.frame = frame
 
-    def render(self) -> None:
+    def _render_loop(self) -> None:
         """
-        Display the latest available frame and process GUI events from the main thread.
+        Run the rendering loop in the main thread until stop_event is set.
         """
-        with self.frame_lock:
-            frame = self.frame
+        while not self.stop_event.is_set():
+            with self.frame_lock:
+                frame = self.frame
 
-        if frame is not None:
-            frame = cv2.resize(frame, (640, 480))
-            cv2.imshow(self.window_name, frame)
-            cv2.waitKey(20)
+            if frame is not None:
+                frame = cv2.resize(frame, (640, 480))
+                cv2.imshow(self.window_name, frame)
+                cv2.waitKey(20)
+
+    def join(self) -> None:
+        self.render_thread.join()
 
     def start(self) -> None:
-        self.running = True
-        self.thread.start()
+        self.capture_thread.start()
+        self.render_thread.start()
         logger.info("Camera stream started.")
 
     def stop(self) -> None:
-        self.running = False
-        self.thread.join(timeout=2)
+        self.stop_event.set()
+        self.capture_thread.join(timeout=2)
+        self.render_thread.join(timeout=2)
         self.cap.release()
         cv2.destroyAllWindows()
         logger.info("Camera stream stopped.")
