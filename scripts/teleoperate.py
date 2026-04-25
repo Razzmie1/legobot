@@ -11,10 +11,15 @@ Please configure the .nxt-python.conf first.
 """
 
 import logging
+import time
+from contextlib import nullcontext
+from typing import Optional
 
 import nxt.locator
+from nxt.brick import Brick
 from pynput import keyboard
 
+from legobot.cameras import CameraStream
 from legobot.controller import KeyboardController
 from legobot.robots import NxtVehicle, VehicleBase
 
@@ -23,42 +28,59 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-SIMULATION_MODE = True
+USE_BRICK = False
+USE_CAMERA = True
 
 
 def main():
-    if SIMULATION_MODE:
-        logger.info("Running in simulation mode without a physical brick.")
+    brick = initialize_brick()
+    camera = initialize_cam()
 
-        robot = VehicleBase()
+    with (
+        camera if camera else nullcontext(),
+        brick if brick else nullcontext(),
+    ):
+        robot = NxtVehicle(brick) if brick else VehicleBase()
         controller = KeyboardController(robot)
-
-        with keyboard.Listener(
+        listener = keyboard.Listener(
             on_press=controller.on_press,  # type: ignore
             on_release=controller.on_release,  # type: ignore
-        ) as listener:
-            listener.join()
+        )
+        with listener:
+            while listener.is_alive():
+                if camera:
+                    camera.render()
+                else:
+                    time.sleep(0.05)
 
-    else:
-        logger.info("Attempting to connect to NXT brick via USB/Bluetooth...")
 
+def initialize_cam() -> Optional[CameraStream]:
+    camera = None
+    if USE_CAMERA:
+        logger.info("Attempting to initialize camera stream...")
         try:
-            with nxt.locator.find() as brick:
-                logger.info("Successfully connected to NXT brick!")
+            camera = CameraStream()
+        except Exception as e:
+            logger.error(f"Initialization failed with error: {e}")
+            logger.info("Continuing without camera stream.")
+    else:
+        logger.info("Camera stream is disabled. Continuing without camera.")
+    return camera
 
-                robot = NxtVehicle(brick)
-                controller = KeyboardController(robot)
 
-                with keyboard.Listener(
-                    on_press=controller.on_press,  # type: ignore
-                    on_release=controller.on_release,  # type: ignore
-                ) as listener:
-                    listener.join()
-
-        except nxt.locator.BrickNotFoundError:
-            logger.error(
-                "Could not find the NXT brick. Check your Bluetooth connection."
-            )
+def initialize_brick() -> Optional[Brick]:
+    brick = None
+    if USE_BRICK:
+        logger.info("Attempting to connect to NXT brick via USB/Bluetooth...")
+        try:
+            brick = nxt.locator.find()
+            logger.info("Connection to NXT brick established successfully.")
+        except Exception as e:
+            logger.error(f"Failed to connect to NXT brick: {e}")
+            logger.info("Continuing in simulation mode without physical brick.")
+    else:
+        logger.info("Running in simulation mode without physical brick.")
+    return brick
 
 
 if __name__ == "__main__":

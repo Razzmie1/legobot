@@ -24,10 +24,9 @@ This project is intended to get some initial hands on experience in the field of
 
 - (Optional) Add a controller as input device
 
-### VLM (planned)
+### VLM
 
 - Define **action methods** with docstrings for the vehicle
-- Attach a **camera** on vehicle that captures images
 - Use **tool calling VLM** that maps `(instruction, image) -> action`, for example an Ollama cloud model, so no GPU needed
 - **Experiment** with different prompts and also dynamic prompts that e.g. include the action history
 
@@ -100,15 +99,13 @@ python scripts\check_motors.py
 
 ## Teleoperation
 
-After setting up the NXT Brick and checking the connection as described above, you can teleoperate the vehicle using the keyboard.
-
 Run the teleoperation script
 
 ```powershell
 python scripts\teleoperate.py
 ```
 
-Use the following controls to drive the vehicle:
+Use these keyboard controls to drive the vehicle
 
 | Key       | Action       |
 |-----------|--------------|
@@ -119,6 +116,8 @@ Use the following controls to drive the vehicle:
 | `Space`     | Play tone    |
 | `Esc`       | Quit         |
 
-**Caution:** The keyboard **listener stays active** even if you switch to another program or window. So it is recommended to stay on the command window until you quit the listener with `Esc`
+By default, the script runs without a physical NXT brick and without a camera. To enable the brick, set `USE_BRICK = True` in the script (after verifying the Bluetooth connection in the [NXT Setup and Bluetooth Checks](#nxt-setup-and-bluetooth-checks) section). To enable the camera, set `USE_CAMERA = True` and configure the camera URL in a `.env` file as `CAMERA_URL=<your_camera_url>`.
+
+**Caution:** The keyboard **listener stays active** even if you switch windows. Keep the command window in focus until you quit with `Esc`. 
 
 **Caution:** Again make sure the NXT vehicle drives in a safe environment
