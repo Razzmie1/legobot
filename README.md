@@ -13,7 +13,7 @@ This project is intended to get some initial hands on experience in the field of
 - **Remote Control**: [`pynput`](https://github.com/moses-palmer/pynput) for keyboard input handling
 - **Environment & Tooling**: [`uv`](https://docs.astral.sh/uv/) for virtualenv + dependency management
 - **Data & Logging**: Custom Python logging utilities for teleoperation trajectories and episode metadata
-- **Vision**: Front-mounted WLAN camera, streamed to the control PC
+- **Vision**: Front-mounted WLAN camera, streamed to the host PC
 - **VLA model**: [`OpenVLA`](https://github.com/openvla/openvla) finetuned using PyTorch
 - **Clean Code**: [`Ruff`](https://docs.astral.sh/ruff/) for linting and formatting code
 - **AI Coding**: [`Cursor`](https://cursor.com/) for experimenting with coding using an AI assistant
@@ -30,6 +30,7 @@ This project is intended to get some initial hands on experience in the field of
 - Use **tool calling VLM** that maps `(instruction, image) -> action`, for example an Ollama cloud model, so no GPU needed
 - Handle case when the VLM is **not responding fast** enough
 - **Experiment** with different prompts and also dynamic prompts that e.g. include the action history
+- **Other Application Idea:** Teleoperation by interpreting gestures from the host PCs camera
 
 ### VLA (planned)
 
@@ -101,6 +102,16 @@ python scripts\check_camera.py
 ```
 
 This should open the camera stream, which you can close by pressing `q`.
+
+### Check Ollama API
+
+Set the `OLLAMA_API_KEY=<your_ollama_api_key>` in the `.env` file and run the following script to check the API
+
+```powershell
+python scripts\check_ollama.py
+```
+
+This should output a short description of this sample [image](data/sample_image.jpg).
 
 ### Troubleshooting
 

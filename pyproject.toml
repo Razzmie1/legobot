@@ -9,10 +9,12 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "nxt-python>=3.5.1",
+    "ollama>=0.6.1",
     "opencv-python>=4.13.0.92",
     "pybluez",
     "pynput>=1.8.1",
     "python-dotenv>=1.2.2",
+    "requests>=2.33.1",
 ]
 
 [tool.setuptools.packages.find]
