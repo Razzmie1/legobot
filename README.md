@@ -28,6 +28,7 @@ This project is intended to get some initial hands on experience in the field of
 
 - Define **action methods** with docstrings for the vehicle
 - Use **tool calling VLM** that maps `(instruction, image) -> action`, for example an Ollama cloud model, so no GPU needed
+- Handle case when the VLM is **not responding fast** enough
 - **Experiment** with different prompts and also dynamic prompts that e.g. include the action history
 
 ### VLA (planned)
@@ -62,9 +63,9 @@ This project is intended to get some initial hands on experience in the field of
    .venv\Scripts\activate
    ```
 
-## NXT Setup and Bluetooth Checks
+## Setup and Sanity Checks
 
-### Setup the config file
+### Check NXT Bluetooth Connection
 
 `nxt-python` can read a configuration file named `.nxt-python.conf`
 
@@ -76,8 +77,6 @@ name = NXT
 ```
 
 Adjust `host` and `name`, where `host` is the NXT Bluetooth address. The address can be found in the "Settings" menu, under "NXT Version" it is the last line labeled "ID". Add `:` between each pair of digits as shown above.
-
-### Check Bluetooth connection
 
 Run the following script, where a tone from the NXT Brick confirms the Bluetooth connection
 
@@ -92,6 +91,16 @@ python scripts\check_motors.py
 ```
 
 **Caution:** Make sure the NXT vehicle drives in a safe environment (;
+
+### Check Camera Connection
+
+Set the `CAMERA_URL=<your_camera_url>` in the `.env` file and run the following script to check the connection
+
+```powershell
+python scripts\check_camera.py
+```
+
+This should open the camera stream, which you can close by pressing `q`.
 
 ### Troubleshooting
 
@@ -116,7 +125,7 @@ Use these keyboard controls to drive the vehicle
 | `Space`     | Play tone    |
 | `Esc`       | Quit         |
 
-By default, the script runs without a physical NXT brick and without a camera. To enable the brick, set `USE_BRICK = True` in the script (after verifying the Bluetooth connection in the [NXT Setup and Bluetooth Checks](#nxt-setup-and-bluetooth-checks) section). To enable the camera, set `USE_CAMERA = True` and configure the camera URL in a `.env` file as `CAMERA_URL=<your_camera_url>`.
+By default, the script runs without a physical NXT brick and without a camera, which can be enabled by setting `USE_BRICK = True` or `USE_CAMERA = True` in the script.
 
 **Caution:** The keyboard **listener stays active** even if you switch windows. Keep the command window in focus until you quit with `Esc`. 
 
