@@ -26,11 +26,12 @@ This project is intended to get some initial hands on experience in the field of
 
 ### VLM
 
-- Define **action methods** with docstrings for the vehicle
 - Use **tool calling VLM** that maps `(instruction, image) -> action`, for example an Ollama cloud model, so no GPU needed
+- **Refactoring** to handle both applications (vlm control via tasks or gestures) jointly in a consistent way
 - Handle case when the VLM is **not responding fast** enough
 - **Experiment** with different prompts and also dynamic prompts that e.g. include the action history
-- **Other Application Idea:** Teleoperation by interpreting gestures from the host PCs camera
+- Build a [`Streamlit`](https://streamlit.io/) app to process task prompts from a user and show vehicles view
+- Use [`promptfoo`](https://www.promptfoo.dev/) to define a testsuite for prompt engineering
 
 ### VLA (planned)
 
@@ -59,7 +60,7 @@ This project is intended to get some initial hands on experience in the field of
    ```powershell
    uv sync
    ```
-   This creates a virtual environment `.venv` with the required dependencies which should be activated by
+   This creates a virtual environment `.venv` with the required dependencies which can be activated by
    ```powershell
    .venv\Scripts\activate
    ```
@@ -82,13 +83,13 @@ Adjust `host` and `name`, where `host` is the NXT Bluetooth address. The address
 Run the following script, where a tone from the NXT Brick confirms the Bluetooth connection
 
 ```powershell
-python scripts\check_bluetooth.py
+uv run scripts\check_bluetooth.py
 ```
 
 Then, run the following script, which sends drive commands to motor ports `A` and `C` (tank steering): drive forward/backward, turn left/right
 
 ```powershell
-python scripts\check_motors.py
+uv run scripts\check_motors.py
 ```
 
 **Caution:** Make sure the NXT vehicle drives in a safe environment (;
@@ -98,7 +99,7 @@ python scripts\check_motors.py
 Set the `CAMERA_URL=<your_camera_url>` in the `.env` file and run the following script to check the connection
 
 ```powershell
-python scripts\check_camera.py
+uv run scripts\check_camera.py
 ```
 
 This should open the camera stream, which you can close by pressing `q`.
@@ -108,7 +109,7 @@ This should open the camera stream, which you can close by pressing `q`.
 Set the `OLLAMA_API_KEY=<your_ollama_api_key>` in the `.env` file and run the following script to check the API
 
 ```powershell
-python scripts\check_ollama.py
+uv run scripts\check_ollama.py
 ```
 
 This should output a short description of this sample [image](data/sample_image.jpg).
@@ -122,7 +123,7 @@ This should output a short description of this sample [image](data/sample_image.
 Run the teleoperation script
 
 ```powershell
-python scripts\teleoperate.py
+uv run scripts\teleoperate.py
 ```
 
 Use these keyboard controls to drive the vehicle

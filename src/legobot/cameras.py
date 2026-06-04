@@ -33,7 +33,29 @@ class CameraStream:
         self.stop_event = threading.Event()
         self.frame_lock = threading.Lock()
 
+    def get_frame(self) -> Optional[cv2.typing.MatLike]:
+        """
+        Get the latest captured frame.
+
+        Returns:
+            The latest frame if available, otherwise None.
+        """
+        with self.frame_lock:
+            return self.frame
+
     def _open_capture(self, camera_source: Union[int, str]) -> cv2.VideoCapture:
+        """
+        Open the video capture based on the camera source.
+
+        Args:
+            camera_source: The source of the camera (local index or IP address).
+
+        Returns:
+            The video capture object.
+
+        Raises:
+            ValueError: If the camera stream cannot be opened.
+        """
         if isinstance(camera_source, int):
             capture = cv2.VideoCapture(camera_source)
         else:
@@ -79,13 +101,16 @@ class CameraStream:
         Run the rendering loop in the main thread until stop_event is set.
         """
         while not self.stop_event.is_set():
-            with self.frame_lock:
-                frame = self.frame
+            frame = self.get_frame()
 
             if frame is not None:
                 frame = cv2.resize(frame, (640, 480))
+                if self.camera_source == 0:
+                    frame = cv2.flip(frame, 1)
                 cv2.imshow(self.window_name, frame)
-                cv2.waitKey(20)
+                if cv2.waitKey(20) & 0xFF == ord("q"):
+                    logger.info("Quit signal received. Stopping camera stream.")
+                    self.stop_event.set()
 
     def join(self) -> None:
         self.render_thread.join()
