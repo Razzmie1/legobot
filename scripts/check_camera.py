@@ -19,15 +19,18 @@ load_dotenv()
 
 
 def main():
-    camera_url = os.getenv("CAMERA_URL", 0)
-
-    logger.info(f"Opening camera stream: {camera_url}")
-    if isinstance(camera_url, int):
-        cap = cv2.VideoCapture(camera_url)
+    source = os.getenv("ROBOT_CAM_SOURCE")
+    if source is None:
+        logger.error("ROBOT_CAM_SOURCE is not set in the .env file")
+        return
+    logger.info(f"Opening camera stream: {source}")
+    if source.isdigit():
+        source = int(source)
+        cap = cv2.VideoCapture(source)
     else:
         # Set video capture properties for timeouts
         cap = cv2.VideoCapture(
-            camera_url,
+            source,
             apiPreference=cv2.CAP_FFMPEG,
             params=[
                 cv2.CAP_PROP_OPEN_TIMEOUT_MSEC,
@@ -38,7 +41,7 @@ def main():
         )
 
     if not cap.isOpened():
-        logger.error("Unable to open camera stream. Check CAMERA_URL and connection.")
+        logger.error("Unable to open camera stream.")
         return
 
     logger.info("Press 'q' to close the stream.")

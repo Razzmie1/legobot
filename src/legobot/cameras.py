@@ -135,7 +135,7 @@ class LiveRender:
         main_capture: LiveCapture,
         opt_capture: Optional[LiveCapture] = None,
         main_width: int = 960,
-        main_height: int = 540,
+        main_height: int = 720,
         opt_downscale_factor: int = 4,
     ):
         """

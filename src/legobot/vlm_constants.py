@@ -11,8 +11,8 @@ Navigate through the environment while avoiding obstacles. The task is completed
 GESTURE_CONTROL_PROMPT = """
 Analyze the image and focus only on the hand and extended fingers. Ignore faces and other objects.
 Classify the image into one of the following categories and call the corresponding tool:
-- Pointing upward: Move forward.
-- Pointing downward: Move backward.
+- Pointing up: Move forward.
+- Pointing down: Move backward.
 - Pointing left: Turn left.
 - Pointing right: Turn right.
 - Both hands open: Stop.

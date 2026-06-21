@@ -13,7 +13,8 @@ This project is intended to get some initial hands on experience in the field of
 - **Remote Control**: [`pynput`](https://github.com/moses-palmer/pynput) for keyboard input handling
 - **Environment & Tooling**: [`uv`](https://docs.astral.sh/uv/) for virtualenv + dependency management
 - **Data & Logging**: Custom Python logging utilities for teleoperation trajectories and episode metadata
-- **Vision**: Front-mounted WLAN camera, streamed to the host PC
+- **Vision**: [`OpenCV`](https://opencv.org/) processing images from a local or front-mounted WLAN camera
+- **VLM model**: [`Ollama`](https://ollama.com/) cloud model with vision and tool calling capabilities
 - **VLA model**: [`OpenVLA`](https://github.com/openvla/openvla) finetuned using PyTorch
 - **Clean Code**: [`Ruff`](https://docs.astral.sh/ruff/) for linting and formatting code
 - **AI Coding**: [`Cursor`](https://cursor.com/) for experimenting with coding using an AI assistant
@@ -26,8 +27,6 @@ This project is intended to get some initial hands on experience in the field of
 
 ### VLM
 
-- Use **tool calling VLM** that maps `(instruction, image) -> action`, for example an Ollama cloud model, so no GPU needed
-- **Refactoring** to handle both applications (vlm control via tasks or gestures) jointly in a consistent way
 - Handle case when the VLM is **not responding fast** enough
 - **Experiment** with different prompts and also dynamic prompts that e.g. include the action history
 - Build a [`Streamlit`](https://streamlit.io/) app to process task prompts from a user and show vehicles view
@@ -96,7 +95,7 @@ uv run scripts\check_motors.py
 
 ### Check Camera Connection
 
-Set the `CAMERA_URL=<your_camera_url>` in the `.env` file and run the following script to check the connection
+Set the `ROBOT_CAM_SOURCE=<your_camera_url>` in the `.env` file and run the following script to check the connection
 
 ```powershell
 uv run scripts\check_camera.py
@@ -137,8 +136,51 @@ Use these keyboard controls to drive the vehicle
 | `Space`     | Play tone    |
 | `Esc`       | Quit         |
 
-By default, the script runs without a physical NXT brick and without a camera, which can be enabled by setting `USE_BRICK = True` or `USE_CAMERA = True` in the script.
+By default, the script runs without a physical NXT brick and without a camera, which can be enabled by setting the corresponding app parameters in the script.
 
-**Caution:** The keyboard **listener stays active** even if you switch windows. Keep the command window in focus until you quit with `Esc`. 
+**Caution:** The keyboard **listener stays active** even if you switch windows. Keep the command window or camera stream in focus until you quit with `Esc`. 
 
 **Caution:** Again make sure the NXT vehicle drives in a safe environment
+
+## Gesture Control
+
+Set the `GESTURE_CAM_SOURCE` in the .env file and run the gesture control script
+
+```powershell
+uv run scripts\gesture_control.py
+```
+
+This will start the camera stream and a VLM will repeatedly analyze the image to execute an appropiate action. The model is guided by the `GESTURE_CONTROL_PROMPT` located [here](src/legobot/vlm_constants.py) and triggers actions via tool calls.
+
+Similar to the teleoperation the following gestures are currently defined
+
+| Gesture   | Action       |
+|-----------|--------------|
+| `Pointing Up`    | Drive forward|
+| `Pointing Down`  | Drive backward|
+| `Pointing Left`  | Turn left    |
+| `Pointing Right` | Turn right   |
+| `Both thumbs up` | Play tone    |
+| `Both hands open`| Stop         |
+
+Quit the application by pressing the `Esc` key.
+
+By setting the corresponding app parameters in the script, you can enable the physical NXT brick and an additional robot camera to be shown. For this, you also need to set the `ROBOT_CAM_SOURCE` in the .env file.
+
+**Caution:** The gestures will not always be interpreted correctly and it still can be improved. Feel free to experiment around with different prompts [here](src/legobot/vlm_constants.py) and different models for the [VLMService](src/legobot/vlm_service.py)
+
+## VLM Control
+
+Set the `ROBOT_CAM_SOURCE` in the .env file and run the VLM control script
+
+```powershell
+uv run scripts\vlm_control.py
+```
+
+This will start the camera stream and a VLM will repeatedly analyze the image to execute an appropiate action. The model is guided by the `VLM_TASK_PROMPT` located [here](src/legobot/vlm_constants.py) and triggers actions via tool calls.
+
+Right now, it simply is ordered to drive around and find a red ball. Feel free to experiment around with different prompts and different models for the [VLMService](src/legobot/vlm_service.py) which might improve performance.
+
+Quit the application by pressing the `Esc` key.
+
+By setting the corresponding app parameters in the script, you can enable the physical NXT brick.
