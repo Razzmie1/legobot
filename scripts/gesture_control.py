@@ -1,17 +1,15 @@
 import logging
 
-from legobot.apps import VLMControlApp
+from legobot.apps import GestureControlApp
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(filename)s: %(message)s"
 )
 logger = logging.getLogger(__name__)
 
-USE_BRICK = False
-
 
 def main():
-    app = VLMControlApp(use_brick=False)
+    app = GestureControlApp(use_brick=False, use_robot_cam=False)
     app.run()
 
 

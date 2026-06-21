@@ -1,54 +1,43 @@
 import logging
-import os
 import threading
 from typing import Optional, Union
 
 import cv2
-from dotenv import load_dotenv
 
-load_dotenv()
 logger = logging.getLogger(__name__)
 
 
-class CameraStream:
+class LiveCapture:
     """
-    A class that handles live camera streaming using OpenCV.
-    Supports both local camera and IP-based wireless cameras.
+    A class that handles live camera capture using OpenCV.
+    Captures the stream from an attached camera, such as a webcam or a Wi-Fi camera.
     """
 
-    def __init__(self, camera_source: Optional[int] = None):
+    def __init__(self, camera_source: Union[int, str]):
         """
-        Initialize the camera stream.
+        Initialize the live capture.
 
         Args:
-            camera_source: Local camera index. If None, it will try to read from the CAMERA_URL environment variable or default to 0.
-        """
-        self.camera_source = camera_source or os.getenv("CAMERA_URL", 0)
-        self.cap = self._open_capture(self.camera_source)
-        self.window_name = "Camera Stream"
-        self.frame = None
+            camera_source: The source of the camera (local index or URL).
 
-        self.capture_thread = threading.Thread(target=self._capture_loop, daemon=True)
-        self.render_thread = threading.Thread(target=self._render_loop, daemon=True)
+        Raises:
+            ValueError: If the camera stream cannot be opened.
+        """
+        self.cam_source = camera_source
+        self.cap = self._open_capture()
+        self.frame: Optional[cv2.typing.MatLike] = None
+        self.thread = None
+        self.started = False
         self.stop_event = threading.Event()
         self.frame_lock = threading.Lock()
+        self.started_lock = threading.Lock()
 
-    def get_frame(self) -> Optional[cv2.typing.MatLike]:
-        """
-        Get the latest captured frame.
-
-        Returns:
-            The latest frame if available, otherwise None.
-        """
-        with self.frame_lock:
-            return self.frame
-
-    def _open_capture(self, camera_source: Union[int, str]) -> cv2.VideoCapture:
+    def _open_capture(self) -> cv2.VideoCapture:
         """
         Open the video capture based on the camera source.
 
         Args:
-            camera_source: The source of the camera (local index or IP address).
+            camera_source: The source of the camera (local index or URL).
 
         Returns:
             The video capture object.
@@ -56,12 +45,12 @@ class CameraStream:
         Raises:
             ValueError: If the camera stream cannot be opened.
         """
-        if isinstance(camera_source, int):
-            capture = cv2.VideoCapture(camera_source)
+        if isinstance(self.cam_source, int):
+            capture = cv2.VideoCapture(self.cam_source)
         else:
             # Set video capture properties for timeouts
             capture = cv2.VideoCapture(
-                camera_source,
+                self.cam_source,
                 apiPreference=cv2.CAP_FFMPEG,
                 params=[
                     cv2.CAP_PROP_OPEN_TIMEOUT_MSEC,
@@ -76,11 +65,11 @@ class CameraStream:
 
         if capture.isOpened():
             logger.info(
-                f"Camera stream opened successfully from source: {camera_source}"
+                f"Camera capture opened successfully from source: {self.cam_source}"
             )
         else:
             raise ValueError(
-                f"Failed to open camera stream, source {camera_source} is not reachable."
+                f"Failed to open camera capture from source: {self.cam_source}."
             )
         return capture
 
@@ -92,41 +81,161 @@ class CameraStream:
             ret, frame = self.cap.read()
             if not ret:
                 logger.error("Failed to read frame from camera.")
-                continue
-            with self.frame_lock:
-                self.frame = frame
+            else:
+                with self.frame_lock:
+                    self.frame = frame
+
+    def get_frame(self) -> Optional[cv2.typing.MatLike]:
+        """
+        Get the latest captured frame.
+
+        Returns:
+            The latest captured frame, or None if no frame is available.
+        """
+        with self.frame_lock:
+            return self.frame
+
+    def join(self) -> None:
+        if self.thread:
+            self.thread.join()
+
+    def start(self) -> None:
+        with self.started_lock:
+            if self.started:
+                return
+            self.started = True
+            self.stop_event.clear()
+
+        self.thread = threading.Thread(target=self._capture_loop, daemon=True)
+        self.thread.start()
+        logger.info(f"Started camera capture from source: {self.cam_source}.")
+
+    def stop(self) -> None:
+        with self.started_lock:
+            if not self.started:
+                return
+            self.started = False
+            self.stop_event.set()
+
+        if self.thread:
+            self.thread.join(timeout=2)
+
+        self.cap.release()
+        logger.info(f"Stopped camera capture from source: {self.cam_source}.")
+
+
+class LiveRender:
+    """
+    A class that handles live camera rendering using OpenCV.
+    Renders the main capture stream and optionally an additional capture stream as a small picture-in-picture.
+    """
+
+    def __init__(
+        self,
+        main_capture: LiveCapture,
+        opt_capture: Optional[LiveCapture] = None,
+        main_width: int = 960,
+        main_height: int = 540,
+        opt_downscale_factor: int = 4,
+    ):
+        """
+        Initialize the camera stream.
+
+        Args:
+            main_capture: The main camera capture object.
+            opt_capture: The optional camera capture object.
+        """
+
+        self.window_name = "Camera Stream"
+        self.main_cap = main_capture
+        self.main_width = main_width
+        self.main_height = main_height
+        self.opt_cap = opt_capture
+        self.opt_width = main_width // opt_downscale_factor
+        self.opt_height = main_height // opt_downscale_factor
+
+        self.thread = None
+        self.started = False
+        self.stop_event = threading.Event()
+        self.started_lock = threading.Lock()
+
+    def compose_frame(self) -> Optional[cv2.typing.MatLike]:
+        """
+        Compose the main frame and the optional picture-in-picture frame.
+
+        Returns:
+            The composed frame, or None if the main frame is not available.
+        """
+        composed_frame = self.main_cap.get_frame()
+        if composed_frame is not None:
+            composed_frame = cv2.resize(
+                composed_frame, (self.main_width, self.main_height)
+            )
+            if self.main_cap.cam_source == 0:
+                composed_frame = cv2.flip(composed_frame, 1)
+
+            if self.opt_cap:
+                opt_frame = self.opt_cap.get_frame()
+                if opt_frame is not None:
+                    opt_frame = cv2.resize(opt_frame, (self.opt_width, self.opt_height))
+                    # Flip the local webcam feed for a more natural view
+                    if self.opt_cap.cam_source == 0:
+                        opt_frame = cv2.flip(opt_frame, 1)
+                    composed_frame[0 : self.opt_height, 0 : self.opt_width] = opt_frame
+                    # Draw a border around the picture-in-picture frame
+                    cv2.rectangle(
+                        composed_frame,
+                        (0, 0),
+                        (self.opt_width, self.opt_height),
+                        (0, 0, 0),
+                        2,
+                    )
+        return composed_frame
 
     def _render_loop(self) -> None:
         """
-        Run the rendering loop in the main thread until stop_event is set.
+        Compose the frame and render it until 'Esc' is pressed.
         """
         while not self.stop_event.is_set():
-            frame = self.get_frame()
-
-            if frame is not None:
-                frame = cv2.resize(frame, (640, 480))
-                if self.camera_source == 0:
-                    frame = cv2.flip(frame, 1)
-                cv2.imshow(self.window_name, frame)
-                if cv2.waitKey(20) & 0xFF == ord("q"):
-                    logger.info("Quit signal received. Stopping camera stream.")
-                    self.stop_event.set()
+            composed_frame = self.compose_frame()
+            if composed_frame is not None:
+                cv2.imshow(self.window_name, composed_frame)
+            if cv2.waitKey(20) & 0xFF == 27:
+                logger.info("Quit signal received. Stopping rendering.")
+                self.stop_event.set()
 
     def join(self) -> None:
-        self.render_thread.join()
+        if self.thread is not None:
+            self.thread.join()
 
     def start(self) -> None:
-        self.capture_thread.start()
-        self.render_thread.start()
-        logger.info("Camera stream started.")
+        with self.started_lock:
+            if self.started:
+                return
+            self.started = True
+            self.stop_event.clear()
+
+        self.main_cap.start()
+        if self.opt_cap:
+            self.opt_cap.start()
+        self.thread = threading.Thread(target=self._render_loop, daemon=True)
+        self.thread.start()
+        logger.info("Started rendering.")
 
     def stop(self) -> None:
-        self.stop_event.set()
-        self.capture_thread.join(timeout=2)
-        self.render_thread.join(timeout=2)
-        self.cap.release()
+        with self.started_lock:
+            if not self.started:
+                return
+            self.started = False
+            self.stop_event.set()
+
+        self.main_cap.stop()
+        if self.opt_cap:
+            self.opt_cap.stop()
+        if self.thread:
+            self.thread.join(timeout=2)
         cv2.destroyAllWindows()
-        logger.info("Camera stream stopped.")
+        logger.info("Stopped rendering.")
 
     def __enter__(self):
         self.start()

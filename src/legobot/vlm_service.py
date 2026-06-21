@@ -9,10 +9,9 @@ import cv2
 from dotenv import load_dotenv
 from ollama import ChatResponse, Client
 
-from legobot.cameras import CameraStream
+from legobot.cameras import LiveCapture
 from legobot.robots import VehicleBase
 from legobot.vlm_constants import (
-    GESTURE_CONTROL_PROMPT,
     SYSTEM_PROMPT,
     backward,
     forward,
@@ -27,24 +26,31 @@ logger = logging.getLogger(__name__)
 
 
 class VLMService:
-    """Service that captures images, sends them to Ollama VLM and executes actions.
-
-    Usage:
-        with VLMService(robot, camera_source=0) as vlm:
-            time.sleep(10)  # runs in background
+    """
+    Service that captures images, sends them to Ollama VLM and executes actions.
     """
 
-    def __init__(self, robot: VehicleBase, camera_stream: CameraStream):
-        self.robot = robot
-        self.camera_stream = camera_stream
+    def __init__(self, user_prompt: str, robot: VehicleBase, live_cap: LiveCapture):
+        """
+        Initialize the VLMService.
 
+        Args:
+            user_prompt: The user prompt that is interpreted by the VLM together with the image to guide the robot's actions.
+            robot: The robot instance that will execute actions.
+            live_cap: The live capture instance that will provide images.
+        """
+
+        self.robot = robot
+        self.live_cap = live_cap
         self.client = Client(
             host="https://ollama.com",
             headers={"Authorization": f"Bearer {os.getenv('OLLAMA_API_KEY')}"},
         )
         self.model = "ministral-3:3b-cloud"
+        self.system_prompt = SYSTEM_PROMPT
+        self.user_prompt = user_prompt
         self.tools = [forward, backward, left, right, stop, space]
-        self.worker_thread = threading.Thread(target=self._worker_loop, daemon=True)
+        self.thread = threading.Thread(target=self._worker_loop, daemon=True)
 
     def call_vlm(self, image_base64: str) -> Optional[ChatResponse]:
         """
@@ -58,10 +64,10 @@ class VLMService:
         """
 
         messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": self.system_prompt},
             {
                 "role": "user",
-                "content": GESTURE_CONTROL_PROMPT,
+                "content": self.user_prompt,
                 "images": [image_base64],
             },
         ]
@@ -101,8 +107,8 @@ class VLMService:
         """
         Main loop for processing camera frames and calling the VLM.
         """
-        while not self.camera_stream.stop_event.is_set():
-            frame = self.camera_stream.get_frame()
+        while not self.live_cap.stop_event.is_set():
+            frame = self.live_cap.get_frame()
             if frame is None:
                 logger.warning("No frame available from camera stream.")
                 time.sleep(1)
@@ -128,17 +134,17 @@ class VLMService:
             time.sleep(2)
 
     def join(self) -> None:
-        self.worker_thread.join()
+        self.thread.join()
 
     def start(self) -> None:
-        self.camera_stream.start()
-        self.worker_thread.start()
+        self.live_cap.start()
+        self.thread.start()
         logger.info("VLMService started.")
         logger.info("Press 'q' in the camera window to stop the service.")
 
     def stop(self) -> None:
-        self.camera_stream.stop()
-        self.worker_thread.join(timeout=2)
+        self.live_cap.stop()
+        self.thread.join(timeout=2)
         logger.info("VLMService stopped.")
 
     def __enter__(self):
