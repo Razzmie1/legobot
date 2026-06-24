@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    app = GestureControlApp(use_brick=False, use_robot_cam=False)
+    app = GestureControlApp(use_brick=False, use_robot_cam=False, save_video=False)
     app.run()
 
 

@@ -136,7 +136,7 @@ Use these keyboard controls to drive the vehicle
 | `Space`     | Play tone    |
 | `Esc`       | Quit         |
 
-By default, the script runs without a physical NXT brick and without a camera, which can be enabled by setting the corresponding app parameters in the script.
+By default, the script runs without a physical NXT brick and without a camera, which can be enabled by setting the corresponding app parameters in the script. Additionally, the video can be saved under [experiments](data/experiments/).
 
 **Caution:** The keyboard **listener stays active** even if you switch windows. Keep the command window or camera stream in focus until you quit with `Esc`. 
 
@@ -165,7 +165,7 @@ Similar to the teleoperation the following gestures are currently defined
 
 Quit the application by pressing the `Esc` key.
 
-By setting the corresponding app parameters in the script, you can enable the physical NXT brick and an additional robot camera to be shown. For this, you also need to set the `ROBOT_CAM_SOURCE` in the .env file.
+By setting the corresponding app parameters in the script, you can enable the physical NXT brick and an additional robot camera to be shown. For this, you also need to set the `ROBOT_CAM_SOURCE` in the .env file. Additionally, the video can be saved under [experiments](data/experiments/).
 
 **Caution:** The gestures will not always be interpreted correctly and it still can be improved. Feel free to experiment around with different prompts [here](src/legobot/vlm_constants.py) and different models for the [VLMService](src/legobot/vlm_service.py)
 
@@ -183,4 +183,4 @@ Right now, it simply is ordered to drive around and find a red ball. Feel free t
 
 Quit the application by pressing the `Esc` key.
 
-By setting the corresponding app parameters in the script, you can enable the physical NXT brick.
+By setting the corresponding app parameters in the script, you can enable the physical NXT brick or save the video under [experiments](data/experiments/).

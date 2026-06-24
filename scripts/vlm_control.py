@@ -11,7 +11,7 @@ USE_BRICK = False
 
 
 def main():
-    app = VLMControlApp(use_brick=False)
+    app = VLMControlApp(use_brick=False, save_video=False)
     app.run()
 
 

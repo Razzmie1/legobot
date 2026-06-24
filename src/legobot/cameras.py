@@ -1,5 +1,7 @@
 import logging
+from pathlib import Path
 import threading
+import time
 from typing import Optional, Union
 
 import cv2
@@ -134,6 +136,8 @@ class LiveRender:
         self,
         main_capture: LiveCapture,
         opt_capture: Optional[LiveCapture] = None,
+        save_path: Optional[Path] = None,
+        fps: int = 50,
         main_width: int = 960,
         main_height: int = 720,
         opt_downscale_factor: int = 4,
@@ -147,6 +151,8 @@ class LiveRender:
         """
 
         self.window_name = "Camera Stream"
+        self.fps = fps
+        self.save_path = save_path
         self.main_cap = main_capture
         self.main_width = main_width
         self.main_height = main_height
@@ -154,6 +160,7 @@ class LiveRender:
         self.opt_width = main_width // opt_downscale_factor
         self.opt_height = main_height // opt_downscale_factor
 
+        self.writer = None
         self.thread = None
         self.started = False
         self.stop_event = threading.Event()
@@ -197,10 +204,16 @@ class LiveRender:
         Compose the frame and render it until 'Esc' is pressed.
         """
         while not self.stop_event.is_set():
+            start = time.time()
             composed_frame = self.compose_frame()
             if composed_frame is not None:
                 cv2.imshow(self.window_name, composed_frame)
-            if cv2.waitKey(20) & 0xFF == 27:
+                if self.writer:
+                    self.writer.write(composed_frame)
+            end = time.time()
+            duration = int(end - start)
+            wait_fps = max(1, 1000 // self.fps - duration)
+            if cv2.waitKey(wait_fps) & 0xFF == 27:
                 logger.info("Quit signal received. Stopping rendering.")
                 self.stop_event.set()
 
@@ -218,6 +231,12 @@ class LiveRender:
         self.main_cap.start()
         if self.opt_cap:
             self.opt_cap.start()
+
+        if self.save_path:
+            fourcc = cv2.VideoWriter.fourcc("m", "p", "4", "v")
+            self.writer = cv2.VideoWriter(
+                self.save_path, fourcc, self.fps, (self.main_width, self.main_height)
+            )
         self.thread = threading.Thread(target=self._render_loop, daemon=True)
         self.thread.start()
         logger.info("Started rendering.")
@@ -234,6 +253,8 @@ class LiveRender:
             self.opt_cap.stop()
         if self.thread:
             self.thread.join(timeout=2)
+        if self.writer:
+            self.writer.release()
         cv2.destroyAllWindows()
         logger.info("Stopped rendering.")
 

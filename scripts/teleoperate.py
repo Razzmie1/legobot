@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    app = TeleoperateApp(use_brick=False, use_robot_cam=True)
+    app = TeleoperateApp(use_brick=False, use_robot_cam=True, save_video=True)
     app.run()
 
 
