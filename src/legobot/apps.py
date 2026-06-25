@@ -1,8 +1,8 @@
-from datetime import datetime
 import logging
 import os
 from abc import ABC, abstractmethod
 from contextlib import nullcontext
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -27,14 +27,17 @@ class BaseApp(ABC):
         use_brick: bool,
         use_robot_cam: bool,
         use_gesture_cam: bool,
+        save_video: bool,
         app_name: str,
     ):
         self.brick = self.init_brick(use_brick)
+        self.robot = NxtVehicle(self.brick) if self.brick else VehicleBase()
         self.robot_cap = self.init_cap("ROBOT_CAM_SOURCE") if use_robot_cam else None
         self.gesture_cap = (
             self.init_cap("GESTURE_CAM_SOURCE") if use_gesture_cam else None
         )
-        self.save_path = self.create_save_path(app_name)
+        self.save_path = self.create_save_path(app_name) if save_video else None
+        self.render = self.init_render()
 
     @abstractmethod
     def run(self):
@@ -62,6 +65,23 @@ class BaseApp(ABC):
             logger.info("Running in simulation mode without physical brick.")
         return brick
 
+    def init_render(self) -> Optional[LiveRender]:
+        render = None
+        if self.robot_cap:
+            render = LiveRender(
+                main_capture=self.robot_cap,
+                opt_capture=self.gesture_cap,
+                save_path=self.save_path,
+                robot=self.robot,
+            )
+        elif self.gesture_cap:
+            render = LiveRender(
+                main_capture=self.gesture_cap,
+                save_path=self.save_path,
+                robot=self.robot,
+            )
+        return render
+
     def create_save_path(self, app_name: str) -> Path:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
         return Path(f"data/experiments/{app_name}_{timestamp}.mp4")
@@ -70,69 +90,60 @@ class BaseApp(ABC):
 class TeleoperateApp(BaseApp):
     def __init__(self, use_brick=False, use_robot_cam=False, save_video=False):
         super().__init__(
-            use_brick, use_robot_cam, use_gesture_cam=False, app_name="teleoperation"
+            use_brick,
+            use_robot_cam,
+            use_gesture_cam=False,
+            save_video=save_video,
+            app_name="teleoperation",
         )
-        self.save_video = save_video
+        controller = KeyboardController(self.robot)
+        self.listener = keyboard.Listener(
+            on_press=controller.on_press,  # type: ignore
+            on_release=controller.on_release,  # type: ignore
+        )
 
     def run(self):
-        render = (
-            LiveRender(
-                self.robot_cap, save_path=self.save_path if self.save_video else None
-            )
-            if self.robot_cap
-            else None
-        )
-
         with (
-            render if render else nullcontext(),
             self.brick if self.brick else nullcontext(),
+            self.render if self.render else nullcontext(),
+            self.listener,
         ):
-            robot = NxtVehicle(self.brick) if self.brick else VehicleBase()
-            controller = KeyboardController(robot)
-            listener = keyboard.Listener(
-                on_press=controller.on_press,  # type: ignore
-                on_release=controller.on_release,  # type: ignore
-            )
-            with listener:
-                listener.join()
+            self.listener.join()
 
 
 class GestureControlApp(BaseApp):
     def __init__(self, use_brick=False, use_robot_cam=False, save_video=False):
         super().__init__(
-            use_brick, use_robot_cam, use_gesture_cam=True, app_name="gesture_control"
+            use_brick,
+            use_robot_cam,
+            use_gesture_cam=True,
+            save_video=save_video,
+            app_name="gesture_control",
         )
-        self.save_video = save_video
+        assert self.gesture_cap, "gesture_cap must not be None for gesture control"
+        self.vlm_service = VLMService(
+            GESTURE_CONTROL_PROMPT, self.robot, self.gesture_cap
+        )
 
     def run(self):
-        robot = NxtVehicle(self.brick) if self.brick else VehicleBase()
-        vlm_service = VLMService(GESTURE_CONTROL_PROMPT, robot, self.gesture_cap)  # type: ignore
-        if self.robot_cap:
-            render = LiveRender(
-                self.robot_cap, self.gesture_cap, save_path=self.save_path
-            )
-        else:
-            render = LiveRender(
-                self.gesture_cap, save_path=self.save_path if self.save_video else None
-            )
-
-        with vlm_service, render:
-            render.join()
+        assert self.render, "render must not be None to show the gesture cam"
+        with self.brick if self.brick else nullcontext(), self.vlm_service, self.render:
+            self.render.join()
 
 
 class VLMControlApp(BaseApp):
     def __init__(self, use_brick=False, save_video=False):
         super().__init__(
-            use_brick, use_robot_cam=True, use_gesture_cam=False, app_name="vlm_control"
+            use_brick,
+            use_robot_cam=True,
+            use_gesture_cam=False,
+            save_video=save_video,
+            app_name="vlm_control",
         )
-        self.save_video = save_video
+        assert self.robot_cap, "robot_cap must not be None for VLM control"
+        self.vlm_service = VLMService(VLM_TASK_PROMPT, self.robot, self.robot_cap)
 
     def run(self):
-        robot = NxtVehicle(self.brick) if self.brick else VehicleBase()
-        vlm_service = VLMService(VLM_TASK_PROMPT, robot, self.robot_cap)  # type: ignore
-        render = LiveRender(
-            self.robot_cap, save_path=self.save_path if self.save_video else None
-        )
-
-        with vlm_service, render:
-            render.join()
+        assert self.render, "render must not be None to show the robot cam"
+        with self.brick if self.brick else nullcontext(), self.vlm_service, self.render:
+            self.render.join()

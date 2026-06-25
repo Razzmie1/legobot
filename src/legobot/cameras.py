@@ -1,10 +1,12 @@
 import logging
-from pathlib import Path
 import threading
 import time
+from pathlib import Path
 from typing import Optional, Union
 
 import cv2
+
+from legobot.robots import VehicleBase
 
 logger = logging.getLogger(__name__)
 
@@ -136,11 +138,11 @@ class LiveRender:
         self,
         main_capture: LiveCapture,
         opt_capture: Optional[LiveCapture] = None,
+        robot: Optional[VehicleBase] = None,
         save_path: Optional[Path] = None,
         fps: int = 50,
         main_width: int = 960,
         main_height: int = 720,
-        opt_downscale_factor: int = 4,
     ):
         """
         Initialize the camera stream.
@@ -153,12 +155,11 @@ class LiveRender:
         self.window_name = "Camera Stream"
         self.fps = fps
         self.save_path = save_path
+        self.robot = robot
         self.main_cap = main_capture
         self.main_width = main_width
         self.main_height = main_height
         self.opt_cap = opt_capture
-        self.opt_width = main_width // opt_downscale_factor
-        self.opt_height = main_height // opt_downscale_factor
 
         self.writer = None
         self.thread = None
@@ -168,7 +169,7 @@ class LiveRender:
 
     def compose_frame(self) -> Optional[cv2.typing.MatLike]:
         """
-        Compose the main frame and the optional picture-in-picture frame.
+        Compose the main frame, the optional picture-in-picture frame, and the optional robot action.
 
         Returns:
             The composed frame, or None if the main frame is not available.
@@ -178,26 +179,86 @@ class LiveRender:
             composed_frame = cv2.resize(
                 composed_frame, (self.main_width, self.main_height)
             )
+
+            # Flip the local webcam feed for a more natural view
             if self.main_cap.cam_source == 0:
                 composed_frame = cv2.flip(composed_frame, 1)
 
-            if self.opt_cap:
-                opt_frame = self.opt_cap.get_frame()
-                if opt_frame is not None:
-                    opt_frame = cv2.resize(opt_frame, (self.opt_width, self.opt_height))
-                    # Flip the local webcam feed for a more natural view
-                    if self.opt_cap.cam_source == 0:
-                        opt_frame = cv2.flip(opt_frame, 1)
-                    composed_frame[0 : self.opt_height, 0 : self.opt_width] = opt_frame
-                    # Draw a border around the picture-in-picture frame
-                    cv2.rectangle(
-                        composed_frame,
-                        (0, 0),
-                        (self.opt_width, self.opt_height),
-                        (0, 0, 0),
-                        2,
-                    )
+            self.add_opt_frame(composed_frame)
+            self.add_robot_action_text(composed_frame)
         return composed_frame
+
+    def add_opt_frame(self, frame: cv2.typing.MatLike):
+        if self.opt_cap:
+            opt_frame = self.opt_cap.get_frame()
+            if opt_frame is not None:
+                # Flip the local webcam feed for a more natural view
+                if self.opt_cap.cam_source == 0:
+                    opt_frame = cv2.flip(opt_frame, 1)
+
+                # Set optional frame as picture-in-picture
+                opt_width = self.main_width // 4
+                opt_height = self.main_height // 4
+                opt_frame = cv2.resize(opt_frame, (opt_width, opt_height))
+                frame[0:opt_height, 0:opt_width] = opt_frame
+
+                # Draw a border around the picture-in-picture frame
+                cv2.rectangle(
+                    frame,
+                    (0, 0),
+                    (opt_width, opt_height),
+                    (0, 0, 0),
+                    2,
+                )
+
+    def add_robot_action_text(self, frame: cv2.typing.MatLike):
+        if self.robot:
+            text = self.robot.current_action.name
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            font_scale = 2
+            thickness = 4
+
+            # Padding around the text
+            pad_x = 10
+            pad_y = 10
+
+            # Get text size
+            (text_w, text_h), _ = cv2.getTextSize(text, font, font_scale, thickness)
+
+            # Coordinates for bottom-left corner
+            x = 0
+            y = self.main_height
+
+            # Rectangle coordinates
+            rect_x1 = x
+            rect_y1 = y - text_h - 2 * pad_y
+            rect_x2 = x + text_w + 2 * pad_x
+            rect_y2 = y
+
+            # Draw filled rectangle
+            cv2.rectangle(
+                frame,
+                (rect_x1, rect_y1),
+                (rect_x2, rect_y2),
+                (0, 0, 0),
+                -1,
+            )
+
+            # Text coordinates
+            text_x = x + pad_x
+            text_y = y - pad_y
+
+            # Draw text
+            cv2.putText(
+                frame,
+                text,
+                (text_x, text_y),
+                font,
+                font_scale,
+                (255, 255, 255),
+                thickness,
+                cv2.LINE_AA,
+            )
 
     def _render_loop(self) -> None:
         """
