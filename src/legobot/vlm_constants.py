@@ -1,3 +1,5 @@
+OLLAMA_MODEL = "ministral-3:3b-cloud"
+
 SYSTEM_PROMPT = """
 You are the autonomous brain of a small LEGO vehicle. You control the vehicle using an image of a camera.
 Analyze the camera image, consider the current task given by the user, and decide on the appropriate action.
@@ -51,3 +53,6 @@ def stop():
 def space():
     """Play a tone to signal a completed task."""
     pass
+
+
+TOOLS = [forward, backward, left, right, stop, space]

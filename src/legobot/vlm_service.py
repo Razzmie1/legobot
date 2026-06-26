@@ -12,13 +12,9 @@ from ollama import ChatResponse, Client
 from legobot.cameras import LiveCapture
 from legobot.robots import VehicleBase
 from legobot.vlm_constants import (
+    OLLAMA_MODEL,
     SYSTEM_PROMPT,
-    backward,
-    forward,
-    left,
-    right,
-    space,
-    stop,
+    TOOLS,
 )
 
 load_dotenv()
@@ -29,6 +25,10 @@ class VLMService:
     """
     Service that captures images, sends them to Ollama VLM and executes actions.
     """
+
+    model = OLLAMA_MODEL
+    system_prompt = SYSTEM_PROMPT
+    tools = TOOLS
 
     def __init__(self, user_prompt: str, robot: VehicleBase, live_cap: LiveCapture):
         """
@@ -46,10 +46,7 @@ class VLMService:
             host="https://ollama.com",
             headers={"Authorization": f"Bearer {os.getenv('OLLAMA_API_KEY')}"},
         )
-        self.model = "ministral-3:3b-cloud"
-        self.system_prompt = SYSTEM_PROMPT
         self.user_prompt = user_prompt
-        self.tools = [forward, backward, left, right, stop, space]
         self.thread = threading.Thread(target=self._worker_loop, daemon=True)
 
     def call_vlm(self, image_base64: str) -> Optional[ChatResponse]:
@@ -140,7 +137,6 @@ class VLMService:
         self.live_cap.start()
         self.thread.start()
         logger.info("VLMService started.")
-        logger.info("Press 'q' in the camera window to stop the service.")
 
     def stop(self) -> None:
         self.live_cap.stop()

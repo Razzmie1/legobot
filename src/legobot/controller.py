@@ -26,7 +26,7 @@ class KeyboardController:
         }
 
         logger.info(
-            "Engine started. Steer with WASD/Arrows. Press Space for horn. Press ESC to quit."
+            "Engine started. Steer with WASD/Arrows. Press Space for horn. Press 'Esc' to quit."
         )
 
     def update_state(self) -> None:
@@ -50,7 +50,7 @@ class KeyboardController:
     def on_release(self, key: Union[Key, KeyCode]) -> Optional[bool]:
         if key == Key.esc:
             self.stop_action()
-            logger.info("Esc pressed. Exiting...")
+            logger.info("'Esc' pressed. Exiting...")
             return False
 
         if key in self.key_to_action:

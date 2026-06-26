@@ -80,6 +80,7 @@ class BaseApp(ABC):
                 save_path=self.save_path,
                 robot=self.robot,
             )
+        logger.info("Render Service initialized successfully.")
         return render
 
     def create_save_path(self, app_name: str) -> Path:
@@ -101,6 +102,7 @@ class TeleoperateApp(BaseApp):
             on_press=controller.on_press,  # type: ignore
             on_release=controller.on_release,  # type: ignore
         )
+        logger.info("Keyboard Listener initialized successfully.")
 
     def run(self):
         with (
@@ -124,6 +126,7 @@ class GestureControlApp(BaseApp):
         self.vlm_service = VLMService(
             GESTURE_CONTROL_PROMPT, self.robot, self.gesture_cap
         )
+        logger.info("VLM Service initialized successfully.")
 
     def run(self):
         assert self.render, "render must not be None to show the gesture cam"
@@ -142,6 +145,7 @@ class VLMControlApp(BaseApp):
         )
         assert self.robot_cap, "robot_cap must not be None for VLM control"
         self.vlm_service = VLMService(VLM_TASK_PROMPT, self.robot, self.robot_cap)
+        logger.info("VLM Service initialized successfully.")
 
     def run(self):
         assert self.render, "render must not be None to show the robot cam"

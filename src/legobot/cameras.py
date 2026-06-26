@@ -67,11 +67,7 @@ class LiveCapture:
         # Set video capture property for buffering
         capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
-        if capture.isOpened():
-            logger.info(
-                f"Camera capture opened successfully from source: {self.cam_source}"
-            )
-        else:
+        if not capture.isOpened():
             raise ValueError(
                 f"Failed to open camera capture from source: {self.cam_source}."
             )
@@ -83,9 +79,7 @@ class LiveCapture:
         """
         while not self.stop_event.is_set():
             ret, frame = self.cap.read()
-            if not ret:
-                logger.error("Failed to read frame from camera.")
-            else:
+            if ret:
                 with self.frame_lock:
                     self.frame = frame
 
@@ -275,7 +269,7 @@ class LiveRender:
             duration = int(end - start)
             wait_fps = max(1, 1000 // self.fps - duration)
             if cv2.waitKey(wait_fps) & 0xFF == 27:
-                logger.info("Quit signal received. Stopping rendering.")
+                logger.info("Quit signal received. Stopping rendering...")
                 self.stop_event.set()
 
     def join(self) -> None:
@@ -300,7 +294,7 @@ class LiveRender:
             )
         self.thread = threading.Thread(target=self._render_loop, daemon=True)
         self.thread.start()
-        logger.info("Started rendering.")
+        logger.info("Started rendering. Press 'Esc' to quit.")
 
     def stop(self) -> None:
         with self.started_lock:
