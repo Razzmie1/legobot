@@ -58,7 +58,7 @@ class LiveCapture:
                 apiPreference=cv2.CAP_FFMPEG,
                 params=[
                     cv2.CAP_PROP_OPEN_TIMEOUT_MSEC,
-                    5000,
+                    10000,
                     cv2.CAP_PROP_READ_TIMEOUT_MSEC,
                     2000,
                 ],
@@ -134,7 +134,7 @@ class LiveRender:
         opt_capture: Optional[LiveCapture] = None,
         robot: Optional[VehicleBase] = None,
         save_path: Optional[Path] = None,
-        fps: int = 50,
+        fps: int = 25,
         main_width: int = 960,
         main_height: int = 720,
     ):
@@ -266,8 +266,8 @@ class LiveRender:
                 if self.writer:
                     self.writer.write(composed_frame)
             end = time.time()
-            duration = int(end - start)
-            wait_fps = max(1, 1000 // self.fps - duration)
+            duration_ms = (end - start) * 1000
+            wait_fps = max(1, int(1000 / self.fps - duration_ms))
             if cv2.waitKey(wait_fps) & 0xFF == 27:
                 logger.info("Quit signal received. Stopping rendering...")
                 self.stop_event.set()
