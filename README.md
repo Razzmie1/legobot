@@ -117,7 +117,9 @@ This should output a short description of this sample [image](data/sample_image.
 
 - **NXT Brick not connected properly:** Make sure that you added the NXT Brick as new Bluetooth device and check the Bluetooth settings. In the advanced Bluetooth settings under `COM Ports` there must be an `outgoing port` for this device. Otherwise there might be an issue with the integrated Bluetooth adapter and its driver, because the NXT Brick is quite old and uses SPP. In my case, buying a cheap Bluetooth Dongle with SPP support solved this issue.
 
-## Teleoperation
+## Apps
+
+### Teleoperation
 
 Run the teleoperation script
 
@@ -142,7 +144,7 @@ By default, the script runs without a physical NXT brick and without a camera, w
 
 **Caution:** Again make sure the NXT vehicle drives in a safe environment
 
-## Gesture Control
+### Gesture Control
 
 Set the `GESTURE_CAM_SOURCE` in the .env file and run the gesture control script
 
@@ -169,7 +171,7 @@ By setting the corresponding app parameters in the script, you can enable the ph
 
 **Caution:** The gestures will not always be interpreted correctly and it still can be improved. Feel free to experiment around with different prompts [here](src/legobot/vlm_constants.py) and different models for the [VLMService](src/legobot/vlm_service.py)
 
-## VLM Control
+### VLM Control
 
 Set the `ROBOT_CAM_SOURCE` in the .env file and run the VLM control script
 
@@ -184,3 +186,20 @@ Right now, it simply is ordered to drive around and find a red ball. Feel free t
 Quit the application by pressing the `Esc` key.
 
 By setting the corresponding app parameters in the script, you can enable the physical NXT brick or save the video under [experiments](data/experiments/).
+
+## Demonstrations
+
+### The Vehicle
+
+<img width="50%" alt="LegobotVehicle" src="https://github.com/user-attachments/assets/a364c635-cb06-4071-8bd9-dfe3be1b11b8" />
+
+As mentioned above, the vehicle is the basic vehicle provided in the LEGO Mindstorms NXT 2.0 package and a WLAN camera was attached on the front.
+
+### Teleoperation
+
+https://github.com/user-attachments/assets/1b4cd605-558f-4b6b-af64-602d124d2fb9
+
+This is a teleoperation example using the controls as explained above. Teleoperation could be used to collect (image, action) pairs for a given task prompt, which then are part of the train data for e.g. a VLA model. In this example the task could be to explore the environment and find a red ball, where playing a tone signals a finished task.
+
+Compared to the vehicle actions, which are executed almost immediately, the camera stream is transmitted with ~0.5s delay. Thus, the update of the action was artificially delayed by 0.5s to synchronize it and to better convey the idea of teleoperation. In practice, one should use a more advanced (and expensive) camera or even better an embedded system to minimize the latency, because it also affects the runtime performance of an AI model controlling the vehicle.
+
