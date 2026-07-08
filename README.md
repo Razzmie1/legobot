@@ -205,7 +205,7 @@ Compared to the vehicle actions, which are executed almost immediately, the came
 
 ### Gesture Control
 
-https://github.com/user-attachments/assets/41d98f09-a0dc-40a2-ae83-0a755267f5ab
+https://github.com/user-attachments/assets/cbd7b6f3-a859-410a-833d-321fdbe3e73a
 
 This is a gesture control example using the prompt described above. In this example an ollama cloud model was used, because the host laptop does not have a suitable GPU. This comes with a latency for the API call and another delay from the model inference. By adjusting the model size one can balance the tradeoff between accuracy and inference time and the general performance can still be improved by prompt engineering or experimenting with different models. Right now, the performance seems to improve when only the gesture is shown without other objects, faces, etc. that introduce noise and also the model seems to struggle when interpreting left and right.
 
@@ -215,6 +215,6 @@ Again, in practice on should use a local model on a inference-optimized GPU to m
 
 ### VLM Control
 
-https://github.com/user-attachments/assets/cfe84a9f-799f-493a-b3a6-bf4f5e295b1b
+https://github.com/user-attachments/assets/413f07f8-8265-4cd6-96e6-7d6a6a7c27d3
 
 This is a VLM control example using the prompt described above. Just as with the gesture control, there is a delay until the robot reacts to the changing capture of the environment, which makes executing the right action at the right time quite difficult. Another difficulty is the absence of a memory, which means the robot only sees the current image and doesn't know about past images or decisions. The performance can still be improved by prompt engineering or experimenting with different models. Currently, the experiment almost always fails and the episode shown in the video is the best result so far, even though it was conducted in a simple environment.
