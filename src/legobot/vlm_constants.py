@@ -1,4 +1,4 @@
-OLLAMA_MODEL = "ministral-3:3b-cloud"
+OLLAMA_MODEL = "ministral-3:14b-cloud"  # 3b, 8b, 14b
 
 SYSTEM_PROMPT = """
 You are the autonomous brain of a small LEGO vehicle. You control the vehicle using an image of a camera.
@@ -7,16 +7,24 @@ Shortly justify your decision in your answer.
 """
 
 VLM_TASK_PROMPT = """
-Navigate through the environment while avoiding obstacles. The task is completed when you see a red ball right in front of you.
+The image shows the front view of the vehicle. The ground is visible in the lower part of the image, and the objects are on top of the ground.
+If you see a clear path ahead, move forward or look around by turning left or right.
+If you encounter an obstacle in front of you in a really short distance, turn left or right to avoid a collision. 
+Note, turning left or right rotates the vehicle in place using tank steering.
+Also, the vehicle is quite small and robust, so you can be assertive.
+If the image appears to be blurry because of the movement, stop the vehicle to get a clearer view and reassess the situation.
+When you see a small ball in front of you, signal a completed task and dont approach it too closely.
+Always answer with your analysis and tool choice. That helps me to improve the system and understand your reasoning.
 """
 
 GESTURE_CONTROL_PROMPT = """
-Analyze the image and focus only on the hand and extended fingers. Ignore faces and other objects.
-Classify the image into one of the following categories and call the corresponding tool:
-- Pointing up: Move forward.
-- Pointing down: Move backward.
-- Pointing left: Turn left.
-- Pointing right: Turn right.
+Analyze the image and focus only on the hand and extended fingers. Ignore persons and other objects.
+Use the perspective of the camera that captured the given frame to determine the direction of the fingers.
+Classify the gesture into one of the following categories and call the corresponding tool:
+- Finger pointing up: Move forward.
+- Finger pointing down: Move backward.
+- Finger pointing left: Turn left.
+- Finger pointing right: Turn right.
 - Both hands open: Stop.
 - Both thumbs up: Task completed.
 

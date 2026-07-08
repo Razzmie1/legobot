@@ -119,7 +119,7 @@ class VLMService:
                 time.sleep(1)
                 continue
 
-            logger.info(f"VLMService response: {result.message}")
+            logger.info(f"VLM analysis: {result.message.content}")
             tool_calls = result.message.tool_calls
             if tool_calls:
                 tool_call = tool_calls[0]
@@ -127,8 +127,8 @@ class VLMService:
             else:
                 logger.info("No tool calls in VLM response.")
 
-            logger.info("Waiting 2 seconds before processing next frame...")
-            time.sleep(2)
+            # logger.info("Waiting 2 seconds before processing next frame...")
+            # time.sleep(2)
 
     def join(self) -> None:
         self.thread.join()
@@ -141,6 +141,7 @@ class VLMService:
     def stop(self) -> None:
         self.live_cap.stop()
         self.thread.join(timeout=2)
+        self.robot.stop()
         logger.info("VLMService stopped.")
 
     def __enter__(self):

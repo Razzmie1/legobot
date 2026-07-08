@@ -32,9 +32,15 @@ class BaseApp(ABC):
     ):
         self.brick = self.init_brick(use_brick)
         self.robot = NxtVehicle(self.brick) if self.brick else VehicleBase()
-        self.robot_cap = self.init_cap("ROBOT_CAM_SOURCE") if use_robot_cam else None
+        self.robot_cap = (
+            self.init_cap("ROBOT_CAM_SOURCE", flip_frame=False)
+            if use_robot_cam
+            else None
+        )
         self.gesture_cap = (
-            self.init_cap("GESTURE_CAM_SOURCE") if use_gesture_cam else None
+            self.init_cap("GESTURE_CAM_SOURCE", flip_frame=True)
+            if use_gesture_cam
+            else None
         )
         self.save_path = self.create_save_path(app_name) if save_video else None
         self.render = self.init_render()
@@ -43,7 +49,7 @@ class BaseApp(ABC):
     def run(self):
         pass
 
-    def init_cap(self, env_source_key: str) -> LiveCapture:
+    def init_cap(self, env_source_key: str, flip_frame: bool) -> LiveCapture:
         source = os.getenv(env_source_key)
         if source is None:
             raise KeyError(f"{env_source_key} is not set in the .env file.")
@@ -51,7 +57,7 @@ class BaseApp(ABC):
             if source.isdigit():
                 source = int(source)
         logger.info(f"Attempting to initialize camera capture from source: {source}")
-        cap = LiveCapture(source)
+        cap = LiveCapture(source, flip_frame)
         logger.info("Camera capture initialized successfully.")
         return cap
 

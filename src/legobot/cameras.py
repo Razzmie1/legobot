@@ -17,17 +17,19 @@ class LiveCapture:
     Captures the stream from an attached camera, such as a webcam or a Wi-Fi camera.
     """
 
-    def __init__(self, camera_source: Union[int, str]):
+    def __init__(self, camera_source: Union[int, str], flip_frame: bool = False):
         """
         Initialize the live capture.
 
         Args:
             camera_source: The source of the camera (local index or URL).
+            flip_frame: Whether to flip the captured frame horizontally.
 
         Raises:
             ValueError: If the camera stream cannot be opened.
         """
         self.cam_source = camera_source
+        self.flip_frame = flip_frame
         self.cap = self._open_capture()
         self.frame: Optional[cv2.typing.MatLike] = None
         self.thread = None
@@ -81,6 +83,8 @@ class LiveCapture:
             ret, frame = self.cap.read()
             if ret:
                 with self.frame_lock:
+                    if self.flip_frame:
+                        frame = cv2.flip(frame, 1)
                     self.frame = frame
 
     def get_frame(self) -> Optional[cv2.typing.MatLike]:
@@ -173,11 +177,6 @@ class LiveRender:
             composed_frame = cv2.resize(
                 composed_frame, (self.main_width, self.main_height)
             )
-
-            # Flip the local webcam feed for a more natural view
-            if self.main_cap.cam_source == 0:
-                composed_frame = cv2.flip(composed_frame, 1)
-
             self.add_opt_frame(composed_frame)
             self.add_robot_action_text(composed_frame)
         return composed_frame
@@ -186,10 +185,6 @@ class LiveRender:
         if self.opt_cap:
             opt_frame = self.opt_cap.get_frame()
             if opt_frame is not None:
-                # Flip the local webcam feed for a more natural view
-                if self.opt_cap.cam_source == 0:
-                    opt_frame = cv2.flip(opt_frame, 1)
-
                 # Set optional frame as picture-in-picture
                 opt_width = self.main_width // 4
                 opt_height = self.main_height // 4
