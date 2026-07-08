@@ -187,7 +187,7 @@ Quit the application by pressing the `Esc` key.
 
 By setting the corresponding app parameters in the script, you can enable the physical NXT brick or save the video under [experiments](data/experiments/).
 
-## Demonstrations
+## Demonstration and Analysis
 
 ### The Vehicle
 
@@ -203,3 +203,18 @@ This is a teleoperation example using the controls as explained above. Teleopera
 
 Compared to the vehicle actions, which are executed almost immediately, the camera stream is transmitted with ~0.5s delay. Thus, the update of the action was artificially delayed by 0.5s to synchronize it and to better convey the idea of teleoperation. In practice, one should use a more advanced (and expensive) camera or even better an embedded system to minimize the latency, because it also affects the runtime performance of an AI model controlling the vehicle.
 
+### Gesture Control
+
+https://github.com/user-attachments/assets/41d98f09-a0dc-40a2-ae83-0a755267f5ab
+
+This is a gesture control example using the prompt described above. In this example an ollama cloud model was used, because the host laptop does not have a suitable GPU. This comes with a latency for the API call and another delay from the model inference. By adjusting the model size one can balance the tradeoff between accuracy and inference time and the general performance can still be improved by prompt engineering or experimenting with different models. Right now, the performance seems to improve when only the gesture is shown without other objects, faces, etc. that introduce noise and also the model seems to struggle when interpreting left and right.
+
+Note that a trained gesture classifier model is probably better suited for this application. Nevertheless, it was implemented out of curiousity as this experiment was achievable simply by adjusting the VLM prompt.
+
+Again, in practice on should use a local model on a inference-optimized GPU to minimize latency when predicting the next action.
+
+### VLM Control
+
+https://github.com/user-attachments/assets/cfe84a9f-799f-493a-b3a6-bf4f5e295b1b
+
+This is a VLM control example using the prompt described above. Just as with the gesture control, there is a delay until the robot reacts to the changing capture of the environment, which makes executing the right action at the right time quite difficult. Another difficulty is the absence of a memory, which means the robot only sees the current image and doesn't know about past images or decisions. The performance can still be improved by prompt engineering or experimenting with different models. Currently, the experiment almost always fails and the episode shown in the video is the best result so far, even though it was conducted in a simple environment.
