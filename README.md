@@ -29,6 +29,11 @@ This project is intended to get some initial hands on experience in the field of
 
 - Handle case when the VLM is **not responding fast** enough
 - **Experiment** with different prompts and also dynamic prompts that e.g. include the action history
+- Send past *n* images or analysis with corresponding actions to VLM
+- Simulate **memory**:
+   - Save image analysis with corresponding action (and next image analysis) as vector in a vector database
+   - Retrieve memories using RAG
+   - Delete memories that are not retrieved frequently
 - Build a [`Streamlit`](https://streamlit.io/) app to process task prompts from a user and show vehicles view
 - Use [`promptfoo`](https://www.promptfoo.dev/) to define a testsuite for prompt engineering
 
