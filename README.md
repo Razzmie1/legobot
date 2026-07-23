@@ -1,5 +1,7 @@
 # Legobot
 
+<img width="50%" alt="LegobotVehicle" src="https://github.com/user-attachments/assets/a364c635-cb06-4071-8bd9-dfe3be1b11b8" />
+
 **Control a LEGO Mindstorms NXT 2.0 robot from a Windows PC or let the AI control it to perform a given task!**
 
 Right now the robot is actually a differential-drive vehicle with left and right road wheels driven by separate motors and can be built using the provided instructions [here](https://www.lego.com/cdn/product-assets/product.bi.core.pdf/4589649.pdf). Forward/backward motion and left/right turns are achieved by commanding these two drive motors with different power values as in tank steering.
